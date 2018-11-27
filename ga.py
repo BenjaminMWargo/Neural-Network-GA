@@ -1,6 +1,6 @@
 #D:\Python\367-64b\python.exe
 import tensorExample as tensor
-import sys,time,random
+import sys,time,random,csv
 class chrom:
     def __init__(self,LR,maxE,L1,L2,L3,fitness = None):
         #Learning Rate
@@ -61,12 +61,12 @@ class Population:
         for p in self.pop:
             print("==Getting Fitness for chrom:" + str(counter)+ "======")
             p.calculateFitness()
-            print("Fitness for "+str(counter) + "=" + str(p.fitness))
+            print("Fitness for "+str(counter) + "= " + str(p.fitness))
             counter += 1
             total += p.fitness
             if (p.fitness<self.min):
                 self.min = p.fitness
-            elif (p.fitness>self.max):
+            if (p.fitness>self.max):
                 self.max = p.fitness
         self.avg = total/len(self.pop)
     def print(self,gen = 0):
@@ -78,26 +78,126 @@ class Population:
         print("============================================")
         print("Avg:" + str(self.avg) + "|Min:" + str(self.min) + "|Max:"+ str(self.max))
         print("============================================")
+    def tournSelection(self):
+        newPop = []
+        a,b = None,None
+        for x in range(len(self.pop)):
+            y = random.randint(0,len(self.pop)-1)
+            a = self.pop[y]
+            y = random.randint(0,len(self.pop)-1)
+            b = self.pop[y]
+            if a.fitness > b.fitness:
+                newPop.append(a)
+            else:
+                newPop.append(b)
+        self.pop = newPop
+    def crossover(self,crossRate):
+        temp1,temp2 = None,None
+        newPop = []
+        random.shuffle(self.pop)
+        for c in self.pop:
+            if temp1 == None:
+                temp1 = c.deepCopy()
+                continue
+            temp2 = c.deepCopy()
+            #roll for crossover
+            if (random.uniform(0.0,1.0)<crossRate):
+                #crossover hit
+                #50% chance to swap each value
+                #LR
+                if (random.uniform(0.0,1.0)<.5):
+                    x = temp1.LR
+                    temp1.LR = temp2.LR
+                    temp2.LR = x
+                #maxEp
+                if (random.uniform(0.0,1.0)<.5):
+                    x = temp1.maxE
+                    temp1.maxE = temp2.maxE
+                    temp2.maxE = x
+                #L1
+                if (random.uniform(0.0,1.0)<.5):
+                    x = temp1.L1
+                    temp1.L1 = temp2.L1
+                    temp2.L1 = x
+                #L2
+                if (random.uniform(0.0,1.0)<.5):
+                    x = temp1.L2
+                    temp1.L2 = temp2.L2
+                    temp2.L2 = x
+                #L3
+                if (random.uniform(0.0,1.0)<.5):
+                    x = temp1.L3
+                    temp1.L3 = temp2.L3
+                    temp2.L3 = x
+            newPop.append(temp1)
+            newPop.append(temp2)
+            temp1,temp2 = None,None
+        #odd population, just add remainder
+        if (temp1 !=None):
+            newPop.append(temp1)
+        self.pop = newPop
+    def mutation(self,mutRate):
+        for c in self.pop:
+            #Roll for mutation
+            if (random.uniform(0.0,1.0)<mutRate):
+                #Mutate everything
+                c.LR = abs(c.LR + random.uniform(-.005,.005))
+                c.maxE = abs(c.maxE + random.randint(-100,100))
+                c.L1 = abs(c.L1 + random.randint(-100,100))
+                c.L2 = abs(c.L2 + random.randint(-100,100))
+                c.L3 = abs(c.L3 + random.randint(-100,100))
+
+                
+
+
+
+
 
 #==============Main=========================
 #Input param
 if (len(sys.argv)== 5):
     #use input params
-    PopSize = sys.argv[1]
-    genAmount = sys.argv[2]
-    crossRate = sys.argv[3]
-    mutRate = sys.argv[4]
+    PopSize = int(sys.argv[1])
+    genAmount = int(sys.argv[2])
+    crossRate = float(sys.argv[3])
+    mutRate = float(sys.argv[4])
 elif (len(sys.argv)==1):
     #No input param, use defaults
     PopSize = 4
-    genAmount = 2
+    genAmount = 3
     crossRate = .5
     mutRate= .01
 else:
     #quit
-    print("Run as: python ga.py N cR mR")
+    print("Run as: python ga.py N maxGen cR mR")
     quit()
+#============File Prep=====================
+filename = "N" + str(PopSize) +"Gen" + str(genAmount) + "cR" + str(int(crossRate*100)) + "mR" + str(int(mutRate*100))
+file = open(filename+'.csv','wb',encoding='utf-8')
+fileWriter = csv.writer(file,dialect='excel')
+fileWriter.writerow(['Min','Avg','Max'])
 #============Init Population=================
 P = Population()
 P.initPopulation(PopSize)
-
+fileWriter.writerow([P.min,P.avg,P.max])
+P.pop.sort(key=lambda x:x.fitness,reverse = True)
+Best = P.pop[0].deepCopy()
+BestGen = -1
+P.print(-1)
+for generation in range(genAmount+1):
+    P.tournSelection()
+    P.crossover(crossRate)
+    P.mutation(mutRate)
+    P.updateStats()
+    fileWriter.writerow([P.min,P.avg,P.max])
+    P.pop.sort(key=lambda x:x.fitness,reverse = True)
+    P.print(generation)
+    if (Best.fitness< P.pop[0].fitness):
+        Best = P.pop[0].deepCopy()
+        BestGen = generation
+    if Best.fitness > 60:
+        break
+#Done
+file.close()
+print("====================Best Chrom found in gen:" + str(BestGen) + "========================")
+Best.print(0)
