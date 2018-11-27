@@ -1,9 +1,10 @@
+#D:\Python\367-64b\python.exe
 import csv
 import tensorflow as tf
 
 
 import sys
-def nn()
+def nn( LR = .002,maxEpoch = 1000,L1 = 1500,L2=1500,L3=1500 ):
 	# Notes: Often times the inputs are called X and the outputs are called Y
 	# Uncomment any print statements to see debugging info
 	# move sys.exit() around to exit your program for debugging
@@ -76,16 +77,16 @@ def nn()
 	################################################
 	# Set up Neural Network pieces:  settings, weights and biases
 
-	learningRate = 0.002 # sets how much aggressive change happens to the weights during each epoch
-	trainingEpochs = 1000  # number of epochs to train.... we could also quit at a threshold
+	learningRate = LR # sets how much aggressive change happens to the weights during each epoch
+	trainingEpochs = maxEpoch  # number of epochs to train.... we could also quit at a threshold
 	batchSize = len(trainY)  # batches are used to load data in chunks when it can't all fit into memory.  Our data easily fits so we set to num records
 	displayStep = 1 # for printing status as it trains
 	numberOfInputs = 4  #number of features,   Health,Knife,Gun,Enemies
 	numberOfOutputs = 4 #numbers of classifications,  Attack,Run,Wander,Hide
 
-	nodesInHiddenLayer1 = 1500
-	nodesInHiddenLayer2 = 1500
-	nodesInHiddenLayer3 = 1500
+	nodesInHiddenLayer1 = L1
+	nodesInHiddenLayer2 = L2
+	nodesInHiddenLayer3 = L3
 
 
 	#setup tensors placeholders,  see  https://www.tensorflow.org/api_docs/python/tf/placeholder
@@ -182,13 +183,13 @@ def nn()
 				_, c = trainingSession.run([trainingOp, loss], feed_dict={X: batchX, Y: batchY})
 				epochCounter += 1
 			#  Code to exit when solution found, 
-			 	averageCost += c / totalBatch
-			 	if averageCost == 0:
+				averageCost += c / totalBatch
+				if averageCost == 0:
 			 		zeroCostCount += 1
 			 		if zeroCostCount > 20:
 			 			solutionFound = 1
 			 			break
-			 	else:
+				else:
 			 		zeroCostCount = 0 	
 			if solutionFound == 1:
 				break
@@ -205,3 +206,4 @@ def nn()
 		print("Accuracy:", accuracy.eval({X: testX, Y: testY}))
 		return accuracy.eval({X: testX, Y: testY}),epochCounter
 
+#print(nn(.005,200,2000,2000,1500))
