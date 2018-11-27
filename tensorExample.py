@@ -80,7 +80,7 @@ def nn( LR = .002,maxEpoch = 1000,L1 = 1500,L2=1500,L3=1500 ):
 	learningRate = LR # sets how much aggressive change happens to the weights during each epoch
 	trainingEpochs = maxEpoch  # number of epochs to train.... we could also quit at a threshold
 	batchSize = len(trainY)  # batches are used to load data in chunks when it can't all fit into memory.  Our data easily fits so we set to num records
-	displayStep = 1 # for printing status as it trains
+	displayStep = 100 # for printing status as it trains
 	numberOfInputs = 4  #number of features,   Health,Knife,Gun,Enemies
 	numberOfOutputs = 4 #numbers of classifications,  Attack,Run,Wander,Hide
 
@@ -193,9 +193,9 @@ def nn( LR = .002,maxEpoch = 1000,L1 = 1500,L2=1500,L3=1500 ):
 			 		zeroCostCount = 0 	
 			if solutionFound == 1:
 				break
-			if epoch % displayStep == 0:
-				print("Epoch:", '%04d' % (epoch + 1), "cost={:.15f}".format(averageCost))
-		print ("Training Finished")
+			#if epoch % displayStep == 0:
+			#	print("Epoch:", '%04d' % (epoch + 1), "cost={:.15f}".format(averageCost))
+		#print ("Training Finished")
 
 		# test
 		prediction = tf.nn.softmax(logits)
@@ -203,7 +203,7 @@ def nn( LR = .002,maxEpoch = 1000,L1 = 1500,L2=1500,L3=1500 ):
 
 		#calculate accurace
 		accuracy = tf.reduce_mean(tf.cast(correctPrediction,tf.float32))
-		print("Accuracy:", accuracy.eval({X: testX, Y: testY}))
+		#print("Accuracy:", accuracy.eval({X: testX, Y: testY}))
 		return accuracy.eval({X: testX, Y: testY}),epochCounter
 
 #print(nn(.005,200,2000,2000,1500))
