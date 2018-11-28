@@ -163,23 +163,24 @@ if (len(sys.argv)== 5):
     mutRate = float(sys.argv[4])
 elif (len(sys.argv)==1):
     #No input param, use defaults
-    PopSize = 4
+    PopSize = 5
     genAmount = 3
     crossRate = .5
-    mutRate= .01
+    mutRate= .1
 else:
     #quit
     print("Run as: python ga.py N maxGen cR mR")
     quit()
 #============File Prep=====================
 filename = "N" + str(PopSize) +"Gen" + str(genAmount) + "cR" + str(int(crossRate*100)) + "mR" + str(int(mutRate*100))
-file = open(filename+'.csv','wb',encoding='utf-8')
-fileWriter = csv.writer(file,dialect='excel')
-fileWriter.writerow(['Min','Avg','Max'])
+file = open(filename+'.csv','w')
+file.write('min,avg,max\n')
+#fileWriter = csv.writer(file,delimiter=',')
+#fileWriter.writerow(['Min','Avg','Max']) 
 #============Init Population=================
 P = Population()
 P.initPopulation(PopSize)
-fileWriter.writerow([P.min,P.avg,P.max])
+file.write(str(P.min)+","+str(P.avg)+","+str(P.max)+'\n')
 P.pop.sort(key=lambda x:x.fitness,reverse = True)
 Best = P.pop[0].deepCopy()
 BestGen = -1
@@ -189,7 +190,7 @@ for generation in range(genAmount+1):
     P.crossover(crossRate)
     P.mutation(mutRate)
     P.updateStats()
-    fileWriter.writerow([P.min,P.avg,P.max])
+    file.write(str(P.min)+","+str(P.avg)+","+str(P.max)+'\n')
     P.pop.sort(key=lambda x:x.fitness,reverse = True)
     P.print(generation)
     if (Best.fitness< P.pop[0].fitness):
